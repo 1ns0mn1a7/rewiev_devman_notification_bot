@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from telegram import Bot
 
 
-def long_polling(auth_token: str, telegram_bot: Bot, telegram_chat_id: int):
+def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_id: int):
     api_url = "https://dvmn.org/api/long_polling/"
     headers = {"Authorization": f"Token {auth_token}"}
     params = {}
@@ -13,13 +13,12 @@ def long_polling(auth_token: str, telegram_bot: Bot, telegram_chat_id: int):
             response = requests.get(api_url, headers=headers, params=params, timeout=60)
             response.raise_for_status()
             review_status = response.json()
-            print(review_status)
 
             if review_status["status"] == "timeout":
                 params["timestamp"] = review_status["timestamp_to_request"]
             elif review_status["status"] == "found":
                 params["timestamp"] = review_status["last_attempt_timestamp"]
-                
+
                 for attempt in review_status["new_attempts"]:
                     lesson_title = attempt["lesson_title"]
                     is_negative = attempt["is_negative"]
@@ -42,20 +41,19 @@ def long_polling(auth_token: str, telegram_bot: Bot, telegram_chat_id: int):
                     )
 
         except requests.exceptions.ReadTimeout:
-            print("Истек таймаут — повторяем запрос...")
             continue
 
 
 def main():
     load_dotenv()
 
-    devman_token = os.getenv("DVMN_API_TOKEN")
-    telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
-    telegram_chat_id = int(os.getenv("TELEGRAM_CHAT_ID"))
+    devman_token = os.environ["DVMN_API_TOKEN"]
+    telegram_token = os.environ["TELEGRAM_BOT_TOKEN"]
+    telegram_chat_id = int(os.environ["TELEGRAM_CHAT_ID"])
 
     telegram_bot = Bot(token=telegram_token)
 
-    long_polling(devman_token, telegram_bot, telegram_chat_id)
+    check_for_review_updates(devman_token, telegram_bot, telegram_chat_id)
 
 
 if __name__ == "__main__":

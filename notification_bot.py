@@ -1,5 +1,6 @@
 import os
 import requests
+import time
 from dotenv import load_dotenv
 from telegram import Bot
 
@@ -41,7 +42,7 @@ def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_i
                     )
 
         except requests.exceptions.ReadTimeout:
-            continue
+            time.sleep(5)
 
 
 def main():

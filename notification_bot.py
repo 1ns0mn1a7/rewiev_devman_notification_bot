@@ -43,6 +43,9 @@ def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_i
 
         except requests.exceptions.ReadTimeout:
             time.sleep(5)
+            continue
+        except requests.exceptions.ConnectionError:
+            time.sleep(5)
 
 
 def main():

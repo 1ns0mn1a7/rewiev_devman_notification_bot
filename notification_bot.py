@@ -7,6 +7,20 @@ from dotenv import load_dotenv
 from telegram import Bot
 
 
+class TelegramLogsHandler(logging.Handler):
+    def __init__(self, tg_bot: Bot, chat_id: int):
+        super().__init__()
+        self.tg_bot = tg_bot
+        self.chat_id = chat_id
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        try:
+            self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
+        except Exception:
+            pass
+
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -19,6 +33,7 @@ def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_i
     api_url = "https://dvmn.org/api/long_polling/"
     headers = {"Authorization": f"Token {auth_token}"}
     params = {}
+
     logger.info("Начинаем отслеживать проверки на DVMN.")
     while True:
         try:
@@ -70,6 +85,13 @@ def main():
     telegram_chat_id = int(os.environ["TELEGRAM_CHAT_ID"])
 
     telegram_bot = Bot(token=telegram_token)
+
+    telegram_handler = TelegramLogsHandler(telegram_bot, telegram_chat_id)
+    telegram_handler.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+    telegram_handler.setFormatter(formatter)
+    logger.addHandler(telegram_handler)
+
     logger.info("Бот запущен.")
     check_for_review_updates(devman_token, telegram_bot, telegram_chat_id)
 

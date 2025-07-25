@@ -1,8 +1,8 @@
 import os
 import sys
-import requests
 import time
 import logging
+import requests
 from dotenv import load_dotenv
 from telegram import Bot
 
@@ -92,7 +92,9 @@ def main():
     telegram_handler.setFormatter(formatter)
     logger.addHandler(telegram_handler)
 
+    telegram_bot.send_message(chat_id=telegram_chat_id, text="Бот запущен.")
     logger.info("Бот запущен.")
+
     check_for_review_updates(devman_token, telegram_bot, telegram_chat_id)
 
 

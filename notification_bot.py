@@ -95,7 +95,13 @@ def main():
     telegram_bot.send_message(chat_id=telegram_chat_id, text="Бот запущен.")
     logger.info("Бот запущен.")
 
-    check_for_review_updates(devman_token, telegram_bot, telegram_chat_id)
+
+    while True:
+        try:
+            check_for_review_updates(devman_token, telegram_bot, telegram_chat_id)
+        except Exception as error:
+            logger.exception("Бот упал с ошибкой:")
+            time.sleep(5)
 
 
 if __name__ == "__main__":

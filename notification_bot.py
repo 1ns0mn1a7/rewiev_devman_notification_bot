@@ -1,14 +1,25 @@
 import os
+import sys
 import requests
 import time
+import logging
 from dotenv import load_dotenv
 from telegram import Bot
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("dvmn_bot")
 
 
 def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_id: int):
     api_url = "https://dvmn.org/api/long_polling/"
     headers = {"Authorization": f"Token {auth_token}"}
     params = {}
+    logger.info("Начинаем отслеживать проверки на DVMN.")
     while True:
         try:
             response = requests.get(api_url, headers=headers, params=params, timeout=60)
@@ -40,11 +51,14 @@ def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_i
                         chat_id=telegram_chat_id,
                         text=message
                     )
+                    logger.info(f"Отправлено сообщение о проверке: {lesson_title}")
 
         except requests.exceptions.ReadTimeout:
+            logger.warning("Таймаут запроса")
             time.sleep(5)
             continue
         except requests.exceptions.ConnectionError:
+            logger.error("Ошибка соединения.")
             time.sleep(5)
 
 
@@ -56,7 +70,7 @@ def main():
     telegram_chat_id = int(os.environ["TELEGRAM_CHAT_ID"])
 
     telegram_bot = Bot(token=telegram_token)
-
+    logger.info("Бот запущен.")
     check_for_review_updates(devman_token, telegram_bot, telegram_chat_id)
 
 

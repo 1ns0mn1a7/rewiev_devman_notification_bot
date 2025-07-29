@@ -21,12 +21,7 @@ class TelegramLogsHandler(logging.Handler):
             pass
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-logger = logging.getLogger("dvmn_bot")
+logger = logging.getLogger(__file__)
 
 
 def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_id: int):
@@ -69,7 +64,7 @@ def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_i
                     logger.info(f"Отправлено сообщение о проверке: {lesson_title}")
 
         except requests.exceptions.ReadTimeout:
-            logger.warning("Таймаут запроса")
+            logger.debug("Таймаут запроса")
             time.sleep(5)
             continue
         except requests.exceptions.ConnectionError:
@@ -79,6 +74,13 @@ def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_i
 
 def main():
     load_dotenv()
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[logging.StreamHandler(sys.stdout)]
+    )
+    logger.setLevel(logging.DEBUG)
 
     devman_token = os.environ["DVMN_API_TOKEN"]
     telegram_token = os.environ["TELEGRAM_BOT_TOKEN"]
@@ -94,7 +96,6 @@ def main():
 
     telegram_bot.send_message(chat_id=telegram_chat_id, text="Бот запущен.")
     logger.info("Бот запущен.")
-
 
     while True:
         try:

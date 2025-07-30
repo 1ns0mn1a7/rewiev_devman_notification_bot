@@ -1,10 +1,14 @@
+import logging
 import os
 import sys
 import time
-import logging
+
 import requests
 from dotenv import load_dotenv
 from telegram import Bot
+
+
+logger = logging.getLogger(__file__)
 
 
 class TelegramLogsHandler(logging.Handler):
@@ -19,9 +23,6 @@ class TelegramLogsHandler(logging.Handler):
             self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
         except Exception:
             pass
-
-
-logger = logging.getLogger(__file__)
 
 
 def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_id: int):
@@ -64,8 +65,6 @@ def check_for_review_updates(auth_token: str, telegram_bot: Bot, telegram_chat_i
                     logger.info(f"Отправлено сообщение о проверке: {lesson_title}")
 
         except requests.exceptions.ReadTimeout:
-            logger.debug("Таймаут запроса")
-            time.sleep(5)
             continue
         except requests.exceptions.ConnectionError:
             logger.error("Ошибка соединения.")
@@ -101,7 +100,7 @@ def main():
         try:
             check_for_review_updates(devman_token, telegram_bot, telegram_chat_id)
         except Exception as error:
-            logger.exception("Бот упал с ошибкой:")
+            logger.exception(f"Бот упал с ошибкой: {error}")
             time.sleep(5)
 
 
